@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>常見問題 - CollectING</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .faq-container { max-width: 800px; margin: 120px auto 80px; padding: 0 20px; }
+        .faq-item { border-bottom: 1px solid #333; padding: 20px 0; }
+        .faq-question {
+            font-size: 18px; font-weight: 600; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .faq-question:hover { color: var(--accent); }
+        .faq-answer {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+            color: var(--text-muted); line-height: 1.6;
+        }
+        .faq-answer p { margin-top: 15px; }
+        /* 箭頭旋轉動畫 */
+        .arrow { transition: transform 0.3s; }
+        .faq-item.active .arrow { transform: rotate(180deg); }
+        .faq-item.active .faq-answer { max-height: 200px; } /* 展開高度 */
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">CollectING</a>
+            <div class="nav-links">
+                <a href="index.html">回首頁</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="faq-container">
+        <h1 style="margin-bottom: 40px; text-align: center;">常見問題</h1>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                商品是正品嗎？ <span class="arrow">▼</span>
+            </div>
+            <div class="faq-answer"><p>是的，CollectING 所有商品皆經過專業鑑定師認證，並隨附保證書。我們拒絕販售任何贗品。</p></div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                運送需要多久時間？ <span class="arrow">▼</span>
+            </div>
+            <div class="faq-answer"><p>台灣本島約 2-3 個工作天。國際運送依照地區不同，約需 7-14 個工作天。</p></div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">
+                提供保固嗎？ <span class="arrow">▼</span>
+            </div>
+            <div class="faq-answer"><p>是的，所有機械類商品（相機、手錶、遊戲機）皆提供 6 個月非人為損壞保固。</p></div>
+        </div>
+    </div>
+
+    <script>
+        // 摺疊選單 JS
+        const faqs = document.querySelectorAll('.faq-item');
+        faqs.forEach(faq => {
+            faq.addEventListener('click', () => {
+                faq.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>

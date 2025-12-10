@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CollectING - 所有收藏</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+
+        /* 頁面標題區 */
+        .header-section { padding: 120px 20px 60px; text-align: center; max-width: 800px; margin: 0 auto; }
+        .header-section h1 { font-size: 56px; margin-bottom: 10px; }
+        .header-section p { font-size: 20px; color: var(--text-muted); }
+
+        /* 商品網格 */
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 40px; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        .product-item { cursor: pointer; transition: opacity 0.3s; }
+        .product-item:hover { opacity: 0.8; }
+        
+        .img-box { 
+            background: #1d1d1f; 
+            border-radius: 20px; 
+            height: 300px; 
+            width: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+            margin-bottom: 20px; 
+            padding: 10px;
+        }
+
+        .img-box img { 
+            width: 100%; 
+            height: 100%; 
+            /* 確保圖片完整顯示，不裁切、不變形 */
+            object-fit: contain;
+            transition: transform 0.3s ease; 
+        }
+        .product-item:hover .img-box img { transform: scale(1.05); }
+
+        .p-name { font-size: 17px; font-weight: 600; margin-bottom: 5px; }
+        .p-price { font-size: 14px; color: var(--text-muted); }
+        .tag { font-size: 10px; color: #d45932; font-weight: 700; margin-bottom: 5px; display: block; text-transform: uppercase; }
+
+    </style>
+</head>
+
+<script>
+    // 購物車邏輯
+    let cart = JSON.parse(localStorage.getItem('CollectING_cart')) || [];
+
+    // 1. 更新購物車畫面
+    function renderCart() {
+        const cartContainer = document.getElementById('cart-items');
+        const totalEl = document.getElementById('cart-total');
+        cartContainer.innerHTML = '';
+        let totalPrice = 0;
+
+        if (cart.length === 0) {
+            cartContainer.innerHTML = '<p style="text-align:center; color:#86868b; margin-top:50px;">購物車是空的</p>';
+        } else {
+            cart.forEach((item, index) => {
+                totalPrice += item.price;
+                cartContainer.innerHTML += `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="product">
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">NT$ ${item.price.toLocaleString()}</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromCart(${index})">移除</button>
+                    </div>
+                `;
+            });
+        }
+        totalEl.innerText = 'NT$ ' + totalPrice.toLocaleString();
+        
+        // 更新導覽列上的數量 (如果有的話)
+        updateCartCount();
+    }
+
+    // 2. 加入購物車功能
+    function addToCart(name, price, image) {
+        cart.push({ name, price, image });
+        saveCart();
+        renderCart();
+        toggleCart(true); // 加入後自動打開側邊欄
+    }
+
+    // 3. 移除商品
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        saveCart();
+        renderCart();
+    }
+
+    // 4. 儲存到 LocalStorage (瀏覽器記憶體)
+    function saveCart() {
+        localStorage.setItem('CollectING_cart', JSON.stringify(cart));
+    }
+
+    // 5. 開關側邊欄
+    function toggleCart(forceOpen = false) {
+        const sidebar = document.getElementById('cart-sidebar');
+        const overlay = document.getElementById('cart-overlay');
+        if (forceOpen) {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+        } else {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+    }
+
+    // 6. 結帳 (模擬)
+    function checkout() {
+        if (cart.length === 0) return alert('購物車是空的！');
+        alert('感謝您的購買！訂單已送出 (模擬)');
+        cart = []; // 清空
+        saveCart();
+        renderCart();
+        toggleCart();
+    }
+
+    // 7. 更新導覽列購物車數量
+    function updateCartCount() {
+        const countBadge = document.getElementById('cart-count');
+        if (countBadge) {
+            countBadge.innerText = cart.length;
+            countBadge.style.display = cart.length > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    // 初始化：等待網頁 HTML 全部載入後，再執行渲染
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCart();
+    });
+</script>
+
+<script src="data.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const grid = document.getElementById('grid-container');
+        const pageTitle = document.querySelector('.header-section h1'); // 抓取標題
+
+        // 抓取網址參數 ?category=xxx
+        const params = new URLSearchParams(window.location.search);
+        const currentCategory = params.get('category');
+
+        let displayProducts = [];
+
+        // 篩選邏輯
+        if (!currentCategory || currentCategory === 'all') {
+            displayProducts = productsDB; // 顯示全部
+            pageTitle.innerText = "所有收藏";
+        } else {
+            // 依照 category 屬性篩選
+            displayProducts = productsDB.filter(item => item.category === currentCategory);
+
+            // 動態改標題 (把英文轉成中文顯示比較好，這裡簡單做)
+            const categoryMap = {
+                'camera': '底片相機',
+                'game': '電玩遊戲',
+                'av': '音樂 / 影像',
+                'comic': '美國漫畫',
+                'card': 'TCG / 運動卡',
+                'jersey': 'NBA 球衣'
+            };
+            pageTitle.innerText = categoryMap[currentCategory] || "精選收藏";
+        }
+
+        // 渲染畫面 (生成 HTML)
+        if (displayProducts.length === 0) {
+            grid.innerHTML = '<p style="text-align:center; width:100%;">目前此分類尚無商品。</p>';
+        } else {
+            grid.innerHTML = displayProducts.map(product => `
+                <a href="detail.html?id=${product.id}" class="product-item">
+                    <div class="img-box">
+                        <img src="${product.img}" alt="${product.name}">
+                    </div>
+                    <span class="tag">${product.category.toUpperCase()}</span>
+                    <div class="p-name">${product.name}</div>
+                    <div class="p-price">NT$ ${product.price.toLocaleString()}</div>
+                </a>
+            `).join('');
+        }
+    });
+</script>
+
+<body>
+
+    <nav>
+        <div class="nav-content">
+            <a href="index.html" style="font-weight:700;">CollectING</a>
+            <div class="nav-links">
+                <a href="products.html?category=camera">相機</a>
+                <a href="products.html?category=game">遊戲機</a>
+                <a href="products.html?category=av">影音</a>
+                <a href="products.html?category=card">卡牌</a>
+                <a href="products.html?category=jersey">球衣</a>
+                <a href="products.html?category=comic">漫畫</a>
+                <a href="products.html?category=all">所有收藏</a>
+                <a href="authentication.html">關於我們</a>
+            </div>
+            <div class="nav-icons" style="display: flex; align-items: center; gap: 20px;">
+    
+                <a href="login.html" title="會員登入">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #d6d6d6; display: block; transition: color 0.3s;">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+
+                <a href="javascript:void(0)" onclick="toggleCart()" style="position: relative; display: block;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #d6d6d6; display: block; transition: color 0.3s;">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                    <span id="cart-count" style="
+                        position: absolute; 
+                        top: -5px; 
+                        right: -8px; 
+                        background: #ff3b30; 
+                        color: white; 
+                        font-size: 10px; 
+                        width: 16px; 
+                        height: 16px; 
+                        border-radius: 50%; 
+                        display: none; 
+                        justify-content: center; 
+                        align-items: center;
+                        font-weight: bold;">0</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="header-section">
+        <h1>探索收藏</h1>
+        <p>從底片相機到卡牌，每一件都是時間的傑作。</p>
+    </div>
+
+    <div class="product-grid" id="grid-container">
+        </div>
+
+    <footer>Copyright © 2025 CollectING Inc.</footer>
+
+    <div id="cart-overlay" class="cart-overlay" onclick="toggleCart()"></div>
+
+<div id="cart-sidebar" class="cart-sidebar">
+    <div class="cart-header">
+        <h2>您的購物車</h2>
+        <span class="close-cart" onclick="toggleCart()">×</span>
+    </div>
+    
+    <div id="cart-items" class="cart-items">
+        <p style="text-align:center; color:#86868b; margin-top:50px;">購物車是空的</p>
+    </div>
+
+    <div class="cart-footer">
+        <div class="total-price">
+            <span>總計</span>
+            <span id="cart-total">NT$ 0</span>
+        </div>
+        <button class="checkout-btn" onclick="location.href='checkout.html'">前往結帳</button>
+    </div>
+</div>
+</body>
+</html>

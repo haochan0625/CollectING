@@ -1,0 +1,17 @@
+# 依賴套件 (這很大，絕對不要上傳)
+node_modules/
+
+# 建置產生的檔案
+dist/
+build/
+
+# 環境變數 (包含敏感金鑰)
+.env
+.env.local
+
+# Mac 系統檔
+.DS_Store
+
+# Amplify 設定檔 (如果之後有)
+amplify/
+aws-exports.js

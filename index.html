@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CollectING - 持續收藏</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+
+        /* --- Typography & Global Animations --- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h1, h2, h3 {
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #fff 0%, #86868b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* --- Sections --- */
+        section {
+            padding: 100px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            justify-content: center;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: clamp(40px, 8vw, 96px);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: clamp(20px, 4vw, 32px);
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        .hero-image-container {
+            width: 100%;
+            max-width: none;
+            height: 100vh;
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.1s linear; /* For Parallax */
+        }
+
+        /* --- Hero Slider 新增樣式 --- */
+        .slider-track {
+            display: flex; /* 讓圖片橫向排列 */
+            height: 100%;
+            width: max-content;
+            /* 使用 cubic-bezier 貝茲曲線，讓滑動有「快進慢出」的高級感 */
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .slide {
+            width: 60vw; 
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+
+            transform: scale(0.85);
+            filter: brightness(0.5);
+            transition: all 0.6s ease;
+            border-radius: 20px; /* 這裡加圓角 */
+        }
+
+        .slide.active {
+            transform: scale(1);
+            filter: brightness(1);
+            z-index: 10;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+        }
+
+        .cta-btn {
+            display: inline-block;
+            background-color: var(--accent);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 980px;
+            text-decoration: none;
+            font-size: 17px;
+            margin-top: 20px;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .cta-btn:hover {
+            transform: scale(1.05);
+            background-color: #0077ed;
+        }
+
+        /* Story Section */
+        .story {
+            max-width: 980px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .story h2 {
+            font-size: clamp(32px, 5vw, 64px);
+            margin-bottom: 20px;
+        }
+
+        .story p {
+            font-size: 21px;
+            line-height: 1.4;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Grid Showcase */
+        .grid-section {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .card {
+            background: #1d1d1f;
+            border-radius: 30px;
+            padding: 40px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.5s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+        }
+
+        .card-text {
+            z-index: 2;
+        }
+
+        .card h3 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 19px;
+        }
+
+        .card-img {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 60%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: bottom center;
+            transition: transform 0.5s ease;
+        }
+        
+        .card:hover .card-img {
+            transform: translateX(-50%) scale(1.1);
+        }
+
+        /* Cinematic Video/Image Section */
+        .cinematic {
+            width: 100%;
+            height: 120vh; /* Taller for scroll effect */
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cinematic-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1550537687-c91072c4792d?q=80&w=2000&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+            filter: brightness(0.4);
+        }
+
+        .cinematic-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .big-statement {
+            font-size: clamp(48px, 10vw, 120px);
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, #4a4a4a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0; /* JS will handle fade */
+        }
+
+        /* --- Responsive Tweaks --- */
+        @media (max-width: 768px) {
+            .nav-links { display: none; } /* Simplified for mobile */
+            .grid-section { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav id="navbar">
+        <div class="nav-content">
+            <a href="#" class="nav-logo">CollectING</a>
+            <div class="nav-links">
+                <a href="products.html?category=camera">相機</a>
+                <a href="products.html?category=game">遊戲機</a>
+                <a href="products.html?category=audio">影音</a>
+                <a href="products.html?category=card">卡牌</a>
+                <a href="products.html?category=jersey">球衣</a>
+                <a href="products.html?category=comic">漫畫</a>
+                <a href="products.html?category=all">所有收藏</a>
+                <a href="authentication.html">關於我們</a>
+            </div>
+            <div class="nav-icons" style="display: flex; align-items: center; gap: 20px;">
+    
+                <a href="login.html" title="會員登入">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #d6d6d6; display: block; transition: color 0.3s;">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+
+                <a href="javascript:void(0)" onclick="toggleCart()" style="position: relative; display: block;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #d6d6d6; display: block; transition: color 0.3s;">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                    <span id="cart-count" style="
+                        position: absolute; 
+                        top: -5px; 
+                        right: -8px; 
+                        background: #ff3b30; 
+                        color: white; 
+                        font-size: 10px; 
+                        width: 16px; 
+                        height: 16px; 
+                        border-radius: 50%; 
+                        display: none; 
+                        justify-content: center; 
+                        align-items: center;
+                        font-weight: bold;">0</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="reveal">
+            <h1 class="gradient-text">More. Than. Collect.</h1>
+            <p>收藏經典，觸手可及。</p>
+            <div class="hero-links">
+                <a href="products.html" class="cta-btn">瀏覽所有收藏</a>
+                <a href="authentication.html" style="margin-left:20px; color:var(--accent); text-decoration:none; font-size:17px;">了解鑑定流程 ></a>
+            </div>
+        </div>
+        <br><br>
+        <div class="hero-image-container reveal" id="hero-img">
+            <div class="slider-track" id="slider-track">
+        
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1618519764620-7403abdbdfe9?q=80&w=2070');"></div>
+
+                <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1600');"></div>
+        
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1621568670868-24a7dfc590e9?q=80&w=2071');"></div>
+        
+                <div class="slide" style="background-image: url('https://images.pexels.com/photos/2398356/pexels-photo-2398356.jpeg?_gl=1*bzjelw*_ga*MjEzNDQ4NTI5NS4xNzY0MDM1OTA1*_ga_8JE65Q40S6*czE3NjUxOTkwMzckbzckZzEkdDE3NjUxOTk0MTIkajQ4JGwwJGgw');"></div>
+
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1601066525716-3cca33c6d4c6?q=80&w=2070');"></div>
+
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1551479460-5e76c686816a?q=80&w=1735');"></div>
+
+                <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1600');"></div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="story">
+        <div class="reveal">
+            <h2>不只是收藏。<br><span style="color: #6e6e73">是保留歷史的切片。</span></h2>
+            <p>每一件上架的收藏品，都經過細心修復與鑑定。我們保留了歲月的痕跡，但還原了物品的靈魂。這不只是購物，這是一場與過去的對話。</p>
+        </div>
+    </section>
+
+    <section class="grid-section">
+        <div class="card reveal" style="grid-column: span 2;">
+            <div class="card-text">
+                <p style="color: #f5a623; font-weight:600;">NEW ARRIVAL</p>
+                <h3><a href="detail.html?id=leica_m3" style="text-decoration:none; color:inherit;">Leica M3</a></h3>
+                <p>底片相機的巔峰之作。</p>
+            </div>
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1651804900839-05ae5dd7612a?q=80&w=800&auto=format&fit=crop');"></div>
+        </div>
+
+        <div class="card reveal">
+            <div class="card-text">
+                <h3><a href="detail.html?id=vinyl_album" style="text-decoration:none; color:inherit;">Vintage Vinyl</a></h3>
+                <p>純類比的聽覺饗宴。</p>
+            </div>
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1603048588665-791ca8aea617?q=80&w=800&auto=format&fit=crop'); height:50%;"></div>
+        </div>
+
+        <div class="card reveal">
+            <div class="card-text">
+                <h3><a href="detail.html?id=gameboy_trans" style="text-decoration:none; color:inherit;">Nintendo GameBoy</a></h3>
+                <p>90年代的掌上回憶。</p>
+            </div>
+            <div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1531525645387-7f14be1bdbbd?q=80&w=800&auto=format&fit=crop'); height: 50%;"></div>
+        </div>
+
+        <div class="card reveal">
+            <div class="card-text">
+                <h3><a href="detail.html?id=fantasticfour_comic" style="text-decoration:none; color:inherit;">Fantasic Four Comic</a></h3>
+                <p>白銀時代的起點。</p>
+            </div>
+            <div class="card-img" style="background-image: url('https://ccg-imaging-cgc-comics-production.s3.amazonaws.com/17543346-295b-4d07-a117-3f8224047b27/CGC4618420-001_OBV.jpg'); height:50%;"></div>
+        </div>
+    </section>
+
+    <section class="cinematic">
+        <div class="cinematic-bg" id="parallax-bg"></div>
+        <div class="cinematic-content reveal">
+            <div class="big-statement">Timeless.</div>
+            <p style="font-size: 24px; margin-top: 20px;">定義未來的，往往是過去。</p>
+        </div>
+    </section>
+
+    <section class="story">
+        <div class="reveal">
+            <h2 style="font-size: 40px;">嚴格標準。</h2>
+            <div style="display: flex; justify-content: space-around; flex-wrap: wrap; margin-top: 50px; text-align: left;">
+                <div style="flex: 1; min-width: 250px; padding: 20px;">
+                    <h4 style="font-size: 24px; margin-bottom: 10px;">外觀評級</h4>
+                    <p style="font-size: 17px;">商品狀況明確標示，絕無隱瞞瑕疵。每一道痕跡都有高清實拍。</p>
+                </div>
+                <div style="flex: 1; min-width: 250px; padding: 20px;">
+                    <h4 style="font-size: 24px; margin-bottom: 10px;">功能保固</h4>
+                    <p style="font-size: 17px;">提供 6 個月的機械故障保固。讓您收藏無後顧之憂。</p>
+                </div>
+                <div style="flex: 1; min-width: 250px; padding: 20px;">
+                    <h4 style="font-size: 24px; margin-bottom: 10px;">全台運送</h4>
+                    <p style="font-size: 17px;">防震防潮專業包裝，多種寄送方式快速送達您手中。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>Copyright © 2025 CollectING Inc. All rights reserved.</p>
+        <p style="margin-top: 10px;">
+            <a href="policies.html#privacy">隱私權政策</a> | <a href="policies.html#terms">使用條款</a> | <a href="policies.html#sales">銷售政策</a> | <a href="faq.html">常見問題</a>
+        </p>
+    </footer>
+
+    <div id="cart-overlay" class="cart-overlay" onclick="toggleCart()"></div>
+
+<div id="cart-sidebar" class="cart-sidebar">
+    <div class="cart-header">
+        <h2>您的購物車</h2>
+        <span class="close-cart" onclick="toggleCart()">×</span>
+    </div>
+    
+    <div id="cart-items" class="cart-items">
+        <p style="text-align:center; color:#86868b; margin-top:50px;">購物車是空的</p>
+    </div>
+
+    <div class="cart-footer">
+        <div class="total-price">
+            <span>總計</span>
+            <span id="cart-total">NT$ 0</span>
+        </div>
+        <button class="checkout-btn" onclick="location.href='checkout.html'">前往結帳</button>
+    </div>
+</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // ================== Hero Slider Center Mode 邏輯 ==================
+            const track = document.getElementById('slider-track');
+            const slides = document.querySelectorAll('.slide');
+    
+            // 設定參數
+            let currentIndex = 1; // 從第 1 張 (真實的第一張) 開始，因為第 0 張是 Clone
+            const totalSlides = slides.length; // 總共有 5 張 (3真 + 2複製)
+            const slideWidthVW = 60; // 每一張佔 60vw
+            const centerOffsetVW = 20; // 置中補償 (100 - 60) / 2 = 20vw
+
+            // 核心移動函式
+            function updatePosition(useTransition = true) {
+                if (useTransition) {
+                    track.style.transition = 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+                } else {
+                    track.style.transition = 'none';
+                }
+
+                // 計算要移動多少 vw
+                // 公式：-(當前索引 * 圖片寬) + 置中補償
+                const translateValue = -(currentIndex * slideWidthVW) + centerOffsetVW;
+                track.style.transform = `translateX(${translateValue}vw)`;
+
+                // 更新視覺樣式 (變大變亮)
+                slides.forEach(s => s.classList.remove('active'));
+                slides[currentIndex].classList.add('active');
+            }
+
+            function nextSlide() {
+                currentIndex++;
+                updatePosition(true); // 有動畫移動
+
+                // 檢查無限循環 (如果走到最後一張 Clone)
+                if (currentIndex === totalSlides - 1) {
+                    setTimeout(() => {
+                        // 瞬間跳回真實的第一張 (Index 1)
+                        currentIndex = 1;
+                        updatePosition(false); // 關閉動畫瞬間跳轉
+                    }, 600); // 等待上面動畫 0.6s 跑完
+                }
+            }
+
+            // 初始化：先移到第 1 張的位置 (而不是第 0 張 Clone)
+            updatePosition(false);
+
+            // 自動播放
+            setInterval(nextSlide, 3000);
+            // ================== 結束 ==================
+
+            // 1. Intersection Observer for Fade-in animations
+            // 這會偵測元素是否進入視窗，進入後加上 'active' class
+            const observerOptions = {
+                threshold: 0.1, // 元素出現 10% 時觸發
+                rootMargin: "0px 0px -50px 0px"
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, observerOptions);
+
+            const revealElements = document.querySelectorAll('.reveal');
+            revealElements.forEach(el => observer.observe(el));
+
+            // 2. Parallax Scroll Effect (視差捲動)
+            // 監聽捲動事件，改變背景位置或元素 Transform
+            window.addEventListener('scroll', () => {
+                const scrolled = window.pageYOffset;
+                
+                // Hero Image Parallax (讓主圖微微移動，產生漂浮感)
+                const heroImg = document.getElementById('hero-img');
+                if (heroImg) {
+                    heroImg.style.transform = `translateY(${scrolled * 0.1}px)`;
+                }
+
+                // Cinematic Background Parallax (深邃背景移動)
+                const parallaxBg = document.getElementById('parallax-bg');
+                const cinematicSection = document.querySelector('.cinematic');
+                
+                if (cinematicSection) {
+                    const sectionTop = cinematicSection.offsetTop;
+                    const sectionHeight = cinematicSection.offsetHeight;
+                    
+                    // 只有當視窗捲動到該區域附近時才計算，節省效能
+                    if (scrolled > sectionTop - window.innerHeight && scrolled < sectionTop + sectionHeight) {
+                        const speed = 0.4;
+                        const yPos = (scrolled - sectionTop) * speed;
+                        parallaxBg.style.transform = `translateY(${yPos}px) scale(1.1)`; // scale 防止移動時露出邊緣
+                    }
+                }
+            });
+
+            // 3. Navbar Blur intensity change (Optional polished touch)
+            // 雖然 CSS 已經有 backdrop-filter，但我們可以讓它隨捲動變暗
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    navbar.style.background = 'rgba(0, 0, 0, 0.9)';
+                } else {
+                    navbar.style.background = 'rgba(0, 0, 0, 0.8)';
+                }
+            });
+        });
+    </script>
+
+ <script>
+    // 購物車邏輯
+    let cart = JSON.parse(localStorage.getItem('CollectING_cart')) || [];
+
+    // 1. 更新購物車畫面
+    function renderCart() {
+        const cartContainer = document.getElementById('cart-items');
+        const totalEl = document.getElementById('cart-total');
+        cartContainer.innerHTML = '';
+        let totalPrice = 0;
+
+        if (cart.length === 0) {
+            cartContainer.innerHTML = '<p style="text-align:center; color:#86868b; margin-top:50px;">購物車是空的</p>';
+        } else {
+            cart.forEach((item, index) => {
+                totalPrice += item.price;
+                cartContainer.innerHTML += `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="product">
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">NT$ ${item.price.toLocaleString()}</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromCart(${index})">移除</button>
+                    </div>
+                `;
+            });
+        }
+        totalEl.innerText = 'NT$ ' + totalPrice.toLocaleString();
+        
+        // 更新導覽列上的數量 (如果有的話)
+        updateCartCount();
+    }
+
+    // 2. 加入購物車功能
+    function addToCart(name, price, image) {
+        cart.push({ name, price, image });
+        saveCart();
+        renderCart();
+        toggleCart(true); // 加入後自動打開側邊欄
+    }
+
+    // 3. 移除商品
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        saveCart();
+        renderCart();
+    }
+
+    // 4. 儲存到 LocalStorage (瀏覽器記憶體)
+    function saveCart() {
+        localStorage.setItem('CollectING_cart', JSON.stringify(cart));
+    }
+
+    // 5. 開關側邊欄
+    function toggleCart(forceOpen = false) {
+        const sidebar = document.getElementById('cart-sidebar');
+        const overlay = document.getElementById('cart-overlay');
+        if (forceOpen) {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+        } else {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+    }
+
+    // 6. 結帳 (模擬)
+    function checkout() {
+        if (cart.length === 0) return alert('購物車是空的！');
+        alert('感謝您的購買！訂單已送出 (模擬)');
+        cart = []; // 清空
+        saveCart();
+        renderCart();
+        toggleCart();
+    }
+
+    // 7. 更新導覽列購物車數量
+    function updateCartCount() {
+        const countBadge = document.getElementById('cart-count');
+        if (countBadge) {
+            countBadge.innerText = cart.length;
+            countBadge.style.display = cart.length > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    // 初始化
+    renderCart();
+</script>
+</body>
+</html>

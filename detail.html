@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品詳情 - CollectING</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+
+        /* 雙欄佈局 */
+        .detail-container {
+            display: flex;
+            flex-wrap: wrap;
+            padding-top: 48px;
+            min-height: 100vh;
+        }
+
+        /* 左側大圖 (固定不動的效果) */
+        .image-side {
+            flex: 1;
+            min-width: 300px;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: sticky;
+            top: 48px;
+            padding: 40px;
+            height: calc(100vh - 48px);
+            flex-direction: column; /* 關鍵 */
+            gap: 20px; /* 主圖跟縮圖的距離 */
+        }
+
+        /* 縮圖列表容器 */
+        .thumbnail-list {
+            display: flex; /* 關鍵：讓縮圖變橫向排列 */
+            gap: 10px; /* 縮圖之間的間距 */
+            margin-top: 20px; /* 與上方大圖保持距離 */
+            overflow-x: auto; /* 如果圖太多可以左右滑 */
+            padding: 10px;
+            justify-content: center; /* 讓縮圖列表置中對齊 */
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+        }
+
+        /* 每一張小縮圖 */
+        .thumb-item {
+            width: 60px;
+            height: 60px;
+            object-fit: cover; /* 裁切成正方形，不會變形 */
+            border-radius: 8px;/* 圓角 */
+            cursor: pointer; /* 滑鼠移上去變手型 */
+            border: 2px solid transparent; /* 預設邊框透明 */
+            transition: all 0.2s;
+            opacity: 0.6; /* 沒選中時稍微暗一點 */
+        }
+
+        .thumb-item:hover {
+            opacity: 1;
+        }
+
+        /* 選中時的樣子 (白色邊框) */
+        .thumb-item.active {
+            border-color: var(--accent);
+            opacity: 1;
+        }
+
+        /* 右側資訊 (可捲動) */
+        .info-side {
+            flex: 1;
+            min-width: 300px;
+            padding: 60px 40px;
+            background: #000;
+        }
+
+        /* --- 商品詳情頁：主圖容器 --- */
+        .main-img-container {
+            position: relative; /* 為了讓按鈕可以用 absolute 定位 */
+            width: 100%;
+            height: 500px; /* 給定一個固定高度，讓版面穩定 */
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden; /* 關鍵！放大時超出的部分要藏起來 */
+            cursor: zoom-in; /* 讓滑鼠變成放大鏡圖示 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 0 30px rgba(0,0,0,0.5)); 
+        }
+
+        .main-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 保持圖片比例 */
+            transition: transform 0.1s ease-out; /* 讓放大移動時有點平滑感 */
+            pointer-events: none; /* 讓滑鼠事件穿透圖片，直接作用在 container 上 (選用) */
+        }
+
+        /* --- 左右切換按鈕 --- */
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0; /* 平常隱藏 */
+            transition: opacity 0.3s, background 0.3s;
+            z-index: 10; /* 確保在圖片上面 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-img-container:hover .nav-btn {
+            opacity: 1; /* 滑鼠移入圖片時才顯示按鈕 */
+        }
+
+        .nav-btn:hover {
+            background: var(--accent); /* 按鈕 hover 變色 */
+        }
+
+        .nav-btn.prev { left: 15px; }
+        .nav-btn.next { right: 15px; }
+
+        .info-content { max-width: 400px; margin: 0 auto; }
+        
+        .breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+        h1 { font-size: 40px; margin-bottom: 10px; line-height: 1.1; }
+        .price { font-size: 24px; color: var(--text-main); margin-bottom: 30px; font-weight: 600; }
+        
+        .description { font-size: 17px; line-height: 1.6; color: var(--text-muted); margin-bottom: 40px; }
+        .description strong { color: var(--text-main); }
+
+        /* --- 庫存狀態文字 --- */
+        .stock-label {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #2ecc71; /* 綠色代表有貨 */
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* 當庫存少於 5 時，變成橘色警示 */
+        .stock-label.low-stock {
+            color: #f5a623;
+        }
+
+        /* 當沒貨時，變成紅色 */
+        .stock-label.out-of-stock {
+            color: #ff3b30;
+        }
+
+        /* --- 通知我按鈕 (覆蓋原本的 .buy-btn) --- */
+        .buy-btn.notify {
+            background-color: #333; /* 深灰色背景 */
+            color: #aaa;            /* 淺灰文字 */
+            border: 1px solid #555;
+            cursor: default;        /* 滑鼠游標變回箭頭 (或 pointer 也可以) */
+        }
+
+        .buy-btn.notify:hover {
+            background-color: #444; /* hover 時稍微變亮一點點就好 */
+        }
+
+        .buy-btn {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            background: var(--accent);
+            color: white;
+            text-align: center;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+        .buy-btn:hover { background: #0077ed; }
+
+        .specs { border-top: 1px solid #333; padding-top: 20px; }
+        .spec-item { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; }
+        .spec-label { color: var(--text-muted); }
+
+        @media(max-width: 768px) {
+            .image-side { position: relative; height: 50vh; }
+            .main-img-container { cursor: default; height: 350px; }
+            .nav-btn { opacity: 1; } /* 手機版按鈕一直顯示 */
+        }
+    </style>
+</head>
+
+<div id="cart-overlay" class="cart-overlay" onclick="toggleCart()"></div>
+
+<div id="cart-sidebar" class="cart-sidebar">
+    <div class="cart-header">
+        <h2>您的購物車</h2>
+        <span class="close-cart" onclick="toggleCart()">×</span>
+    </div>
+    
+    <div id="cart-items" class="cart-items">
+        <p style="text-align:center; color:#86868b; margin-top:50px;">購物車是空的</p>
+    </div>
+
+    <div class="cart-footer">
+        <div class="total-price">
+            <span>總計</span>
+            <span id="cart-total">NT$ 0</span>
+        </div>
+        <button class="checkout-btn" onclick="location.href='checkout.html'">前往結帳</button>
+    </div>
+</div>
+
+<script src="data.js"></script>
+
+<script>
+    // 抓取網址上的 ID (例如 ?id=leica_m3)
+    function getProductId() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('id');
+    }
+
+    // 渲染頁面功能
+    function loadProductDetail() {
+        const id = getProductId();
+
+        // [關鍵修改] 改用 find 方法在陣列中尋找對應 ID 的商品
+        const product = productsDB.find(item => item.id === id);
+
+        // 如果找不到商品 (例如亂打網址，或是資料庫沒這個 ID)
+        if (!product) {
+            document.querySelector('.info-content').innerHTML = "<h1>找不到此商品</h1><p>請回首頁重新選擇。</p>";
+            return;
+        }
+
+        //加入這一行，網頁標題就會跟著變了！
+        document.title = product.name + " - CollectING";
+
+        // 把資料填入 HTML
+        document.getElementById('p-name').innerText = product.name;
+        document.getElementById('p-price').innerText = "NT$ " + product.price.toLocaleString();
+        document.getElementById('p-desc').innerHTML = product.desc;
+        document.getElementById('p-img').src = product.img;
+        // ... 前面的 code (取得 id, 填入文字資料) 不用動 ...
+
+        // ✅ 圖片畫廊與放大鏡邏輯 (全新升級版)
+        const mainImg = document.getElementById('p-img');
+        const zoomContainer = document.getElementById('zoom-container');
+        const thumbContainer = document.getElementById('thumb-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+
+        // 1. 準備圖片清單
+        const galleryImages = product.images || [product.img];
+        let currentIndex = 0; // 目前顯示第幾張圖
+
+        // 2. 定義「更新圖片」的函式 (切換大圖 + 縮圖亮起)
+        function updateDisplay(index) {
+            // 確保 index 在合法範圍 (循環切換)
+            if (index < 0) index = galleryImages.length - 1;
+            if (index >= galleryImages.length) index = 0;
+        
+            currentIndex = index;
+        
+            // 換圖
+            mainImg.src = galleryImages[currentIndex];
+        
+            // 更新縮圖選中狀態
+            document.querySelectorAll('.thumb-item').forEach((thumb, idx) => {
+                if (idx === currentIndex) {
+                    thumb.classList.add('active');
+                } else {
+                    thumb.classList.remove('active');
+                }
+            });
+        }
+
+        // 3. 左右按鈕點擊事件
+        prevBtn.onclick = (e) => {
+            e.stopPropagation(); // 防止觸發圖片點擊
+            updateDisplay(currentIndex - 1);
+        };
+        nextBtn.onclick = (e) => {
+            e.stopPropagation();
+            updateDisplay(currentIndex + 1);
+        };
+
+        // 4. 產生縮圖列表
+        thumbContainer.innerHTML = '';
+        galleryImages.forEach((imgUrl, index) => {
+            const thumb = document.createElement('img');
+            thumb.src = imgUrl;
+            thumb.classList.add('thumb-item');
+            thumb.onclick = () => updateDisplay(index); // 點縮圖切換
+            thumbContainer.appendChild(thumb);
+        });
+
+        // 初始化第一張圖
+        updateDisplay(0);
+        // 🔍 局部放大鏡特效 (Zoom Effect)
+    
+        // 當滑鼠在容器上移動時
+        zoomContainer.addEventListener('mousemove', function(e) {
+            // 取得容器的尺寸與位置
+            const { left, top, width, height } = zoomContainer.getBoundingClientRect();
+        
+            // 計算滑鼠在容器內的座標 (相對位置)
+            const x = e.clientX - left;
+            const y = e.clientY - top;
+
+            // 計算滑鼠佔寬高的百分比 (0% ~ 100%)
+            const xPercent = (x / width) * 100;
+            const yPercent = (y / height) * 100;
+
+            // 設定放大的基準點 (transform-origin) 跟隨滑鼠
+            mainImg.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+        
+            // 放大圖片 (例如放大 2 倍)
+            mainImg.style.transform = "scale(3)";
+        });
+
+        // 當滑鼠離開容器時，復原圖片
+        zoomContainer.addEventListener('mouseleave', function() {
+            mainImg.style.transform = "scale(1)";
+            // 延遲一下讓復原過程平滑
+            setTimeout(() => {
+                mainImg.style.transformOrigin = "center center";
+            }, 300);
+        });
+
+        // ✅ 新增：動態產生規格表
+        // ==============================================
+        const specsContainer = document.getElementById('specs-container');
+        specsContainer.innerHTML = ''; // 先清空，避免殘留
+
+        // 檢查這個商品有沒有 specs 資料
+        if (product.specs) {
+            // Object.entries 會把 { "年份": "1958" } 變成 [ ["年份", "1958"], ... ]
+            // 然後我們用迴圈把每一行做出來
+            for (const [key, value] of Object.entries(product.specs)) {
+                specsContainer.innerHTML += `
+                    <div class="spec-item">
+                        <span class="spec-label">${key}</span>
+                        <span>${value}</span>
+                    </div>
+                `;
+            }
+        }
+
+        // ✅ 庫存與按鈕邏輯 (Stock Logic)
+        // ============================================
+        const stockEl = document.getElementById('p-stock');
+        const btn = document.getElementById('add-btn');
+
+        // 1. 處理庫存顯示文字
+        if (product.stock > 0) {
+            // --- 有貨的情況 ---
+            if (product.stock <= 3) {
+                // 庫存緊張 (<=3)
+                stockEl.innerText = `🔥 只剩 ${product.stock} 件`;
+                stockEl.className = 'stock-label low-stock';
+            } else {
+                // 庫存充足
+                stockEl.innerText = `庫存：${product.stock}`;
+                stockEl.className = 'stock-label';
+            }
+
+            // 按鈕設定：加入購物車
+            btn.innerText = "加入購物車";
+            btn.className = "buy-btn"; // 恢復藍色樣式
+            btn.disabled = false;      // 啟用按鈕
+        
+            btn.onclick = function() {
+                // 呼叫原本的加入購物車功能
+                addToCart(product.name, product.price, product.img);
+            
+                // (選用功能) 簡單的扣庫存模擬：
+                // 注意：因為沒有後端，這只是視覺上的扣除，重整網頁會恢復
+                product.stock--; 
+                loadProductDetail(); // 重新執行這個函式來更新畫面數字
+            };
+
+        } else {
+            // --- 沒貨的情況 (Stock = 0) ---
+            stockEl.innerText = "暫無庫存";
+            stockEl.className = 'stock-label out-of-stock';
+
+            // 按鈕設定：改為通知我
+            btn.innerText = "貨到通知我 🔔";
+            btn.className = "buy-btn notify"; // 套用灰色樣式
+            // btn.disabled = true; // 如果你想讓按鈕完全不能按，就解開這行
+
+            btn.onclick = function() {
+                // 這裡可以跳出簡單的提示，或是彈出視窗讓客人留 Email
+                alert(`已設定通知！\n\n當「${product.name}」補貨時，我們會第一時間傳送 Email 給您。`);
+            };
+        }
+    }
+
+    // 當頁面載入時，執行這個功能
+    window.addEventListener('DOMContentLoaded', loadProductDetail);
+</script>
+
+<script>
+    // 購物車邏輯
+    let cart = JSON.parse(localStorage.getItem('CollectING_cart')) || [];
+
+    // 1. 更新購物車畫面
+    function renderCart() {
+        const cartContainer = document.getElementById('cart-items');
+        const totalEl = document.getElementById('cart-total');
+        cartContainer.innerHTML = '';
+        let totalPrice = 0;
+
+        if (cart.length === 0) {
+            cartContainer.innerHTML = '<p style="text-align:center; color:#86868b; margin-top:50px;">購物車是空的</p>';
+        } else {
+            cart.forEach((item, index) => {
+                totalPrice += item.price;
+                cartContainer.innerHTML += `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="product">
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">NT$ ${item.price.toLocaleString()}</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromCart(${index})">移除</button>
+                    </div>
+                `;
+            });
+        }
+        totalEl.innerText = 'NT$ ' + totalPrice.toLocaleString();
+        
+        // 更新導覽列上的數量 (如果有的話)
+        updateCartCount();
+    }
+
+    // 2. 加入購物車功能
+    function addToCart(name, price, image) {
+        cart.push({ name, price, image });
+        saveCart();
+        renderCart();
+        toggleCart(true); // 加入後自動打開側邊欄
+    }
+
+    // 3. 移除商品
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        saveCart();
+        renderCart();
+    }
+
+    // 4. 儲存到 LocalStorage (瀏覽器記憶體)
+    function saveCart() {
+        localStorage.setItem('CollectING_cart', JSON.stringify(cart));
+    }
+
+    // 5. 開關側邊欄
+    function toggleCart(forceOpen = false) {
+        const sidebar = document.getElementById('cart-sidebar');
+        const overlay = document.getElementById('cart-overlay');
+        if (forceOpen) {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+        } else {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+    }
+
+    // 6. 結帳 (模擬)
+    function checkout() {
+        if (cart.length === 0) return alert('購物車是空的！');
+        alert('感謝您的購買！訂單已送出 (模擬)');
+        cart = []; // 清空
+        saveCart();
+        renderCart();
+        toggleCart();
+    }
+
+    // 7. 更新導覽列購物車數量
+    function updateCartCount() {
+        const countBadge = document.getElementById('cart-count');
+        if (countBadge) {
+            countBadge.innerText = cart.length;
+            countBadge.style.display = cart.length > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    // 初始化
+    renderCart();
+</script>
+
+<body>
+
+    <nav>
+        <div class="nav-content">
+            <a href="index.html" style="font-weight:700;">CollectING</a>
+            <div class="nav-links">
+                <a href="products.html?category=camera">相機</a>
+                <a href="products.html?category=game">遊戲機</a>
+                <a href="products.html?category=audio">影音</a>
+                <a href="products.html?category=card">卡牌</a>
+                <a href="products.html?category=jersey">球衣</a>
+                <a href="products.html?category=comic">漫畫</a>
+                <a href="products.html?category=all">所有收藏</a>
+                <a href="authentication.html">關於我們</a>
+            </div>
+            <div class="nav-icons" style="display: flex; align-items: center; gap: 20px;">
+    
+                <a href="login.html" title="會員登入">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #d6d6d6; display: block; transition: color 0.3s;">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+
+                <a href="javascript:void(0)" onclick="toggleCart()" style="position: relative; display: block;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #d6d6d6; display: block; transition: color 0.3s;">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                    <span id="cart-count" style="
+                        position: absolute; 
+                        top: -5px; 
+                        right: -8px; 
+                        background: #ff3b30; 
+                        color: white; 
+                        font-size: 10px; 
+                        width: 16px; 
+                        height: 16px; 
+                        border-radius: 50%; 
+                        display: none; 
+                        justify-content: center; 
+                        align-items: center;
+                        font-weight: bold;">0</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="detail-container">
+        <div class="image-side">
+            <div class="main-img-container" id="zoom-container">
+        
+                <img id="p-img" src="" alt="商品大圖">
+        
+                <button class="nav-btn prev" id="prev-btn">❮</button>
+                <button class="nav-btn next" id="next-btn">❯</button>
+            </div>
+
+            <div class="thumbnail-list" id="thumb-container"></div>
+        </div>
+        <div class="info-side">
+            <div class="info-content">
+                <div class="breadcrumb">首頁 > 商品詳情</div>
+            
+                <h1 id="p-name">載入中...</h1>
+            
+                <div class="price" id="p-price"></div>
+
+                <div id="p-stock" class="stock-label"></div>
+            
+                <button id="add-btn" class="buy-btn">加入購物車</button>
+            
+                <p class="description" id="p-desc"></p>
+
+                <div class="specs" id="specs-container"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

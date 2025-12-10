@@ -1,0 +1,156 @@
+/* =========================================
+   1. 全域變數與基礎設定 (Global & Reset)
+   ========================================= */
+:root {
+    --bg-color: #000000;
+    --text-main: #f5f5f7;
+    --text-muted: #86868b;
+    --accent: #2997ff;
+    --nav-bg: rgba(0, 0, 0, 0.8);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    overflow-x: hidden; /* 防止橫向卷軸 */
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* =========================================
+   2. 導覽列 (Navbar) - 所有頁面通用
+   ========================================= */
+nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 48px;
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.3s ease;
+}
+
+.nav-content {
+    width: 100%;
+    max-width: 980px;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.nav-logo {
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--text-main);
+}
+
+/* 這裡就是你原本 detail.html 漏掉的部分，現在統一寫在這裡 */
+.nav-links a {
+    color: #d6d6d6;
+    margin-left: 24px;
+    transition: color 0.3s;
+}
+
+/* 讓右邊的圖示區橫向排列，並增加間距 */
+.nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 20px;  /* 這裡控制會員跟購物車之間的距離 */
+}
+
+/* 確保連結本身也是置中對齊 */
+.nav-icons a {
+    display: flex;
+    align-items: center;
+    text-decoration: none; /* 確保沒有底線 */
+}
+
+/* 導覽列圖示特效 */
+.nav-icons a svg {
+    color: #d6d6d6; /* 預設淺灰色 */
+}
+
+.nav-icons a:hover svg {
+    color: var(--accent); /* 滑鼠移過去變藍色 */
+}
+
+.nav-links a:hover {
+    color: var(--accent);
+}
+
+/* =========================================
+   3. 購物車側邊欄 (Shopping Cart)
+   ========================================= */
+.cart-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 1999;
+    opacity: 0; visibility: hidden; transition: all 0.3s;
+}
+.cart-overlay.open { opacity: 1; visibility: visible; }
+
+.cart-sidebar {
+    position: fixed; top: 0; right: -400px; width: 400px; height: 100%;
+    background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(20px);
+    z-index: 2000; transition: right 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    display: flex; flex-direction: column; border-left: 1px solid #333;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+}
+.cart-sidebar.open { right: 0; }
+
+.cart-header { padding: 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+.cart-header h2 { font-size: 20px; font-weight: 600; color: #f5f5f7; }
+.close-cart { font-size: 30px; cursor: pointer; color: #86868b; }
+.close-cart:hover { color: #fff; }
+
+.cart-items { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* 購物車內的小卡片 */
+.cart-item { display: flex; align-items: center; margin-bottom: 20px; background: #2c2c2e; padding: 10px; border-radius: 12px; }
+.cart-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px; }
+.item-details { flex: 1; }
+.item-name { font-size: 14px; color: #fff; margin-bottom: 5px; }
+.item-price { font-size: 13px; color: #86868b; }
+.remove-btn { color: #ff3b30; font-size: 12px; cursor: pointer; border: none; background: none; margin-left: 10px; }
+
+.cart-footer { padding: 20px; border-top: 1px solid #333; background: #111; }
+.total-price { display: flex; justify-content: space-between; font-size: 18px; font-weight: 600; margin-bottom: 20px; color: #fff; }
+.checkout-btn { width: 100%; padding: 15px; background: #2997ff; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.checkout-btn:hover { background: #0077ed; }
+
+@media (max-width: 500px) { .cart-sidebar { width: 100%; right: -100%; } }
+
+/* =========================================
+   4. 頁尾 (Footer)
+   ========================================= */
+footer {
+    background: #111;
+    padding: 80px 0;
+    border-top: 1px solid #333;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: auto; /* 確保 footer 盡量在底部 */
+}
+footer a {
+    color: var(--text-main);
+    margin: 0 10px;
+}

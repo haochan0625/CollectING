@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鑑定與工藝 - CollectING</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+
+        .article-container { max-width: 680px; margin: 0 auto; padding: 120px 20px 80px; }
+        
+        h1 { font-size: 48px; font-weight: 700; margin-bottom: 60px; text-align: center; }
+        h2 { font-size: 32px; margin-top: 60px; margin-bottom: 20px; color: var(--text-main); }
+        p { font-size: 19px; color: var(--text-muted); margin-bottom: 24px; }
+        
+        ul { margin-bottom: 30px; padding-left: 20px; color: var(--text-muted); font-size: 19px; }
+        li { margin-bottom: 10px; }
+
+        .signature { margin-top: 80px; border-top: 1px solid #333; padding-top: 40px; text-align: center; font-size: 14px; color: var(--text-muted); }
+    </style>
+</head>
+
+<div id="cart-overlay" class="cart-overlay" onclick="toggleCart()"></div>
+
+<div id="cart-sidebar" class="cart-sidebar">
+    <div class="cart-header">
+        <h2>您的購物車</h2>
+        <span class="close-cart" onclick="toggleCart()">×</span>
+    </div>
+    
+    <div id="cart-items" class="cart-items">
+        <p style="text-align:center; color:#86868b; margin-top:50px;">購物車是空的</p>
+    </div>
+
+    <div class="cart-footer">
+        <div class="total-price">
+            <span>總計</span>
+            <span id="cart-total">NT$ 0</span>
+        </div>
+        <button class="checkout-btn" onclick="location.href='checkout.html'">前往結帳</button>
+    </div>
+</div>
+
+<script>
+    // 購物車邏輯
+    let cart = JSON.parse(localStorage.getItem('CollectING_cart')) || [];
+
+    // 1. 更新購物車畫面
+    function renderCart() {
+        const cartContainer = document.getElementById('cart-items');
+        const totalEl = document.getElementById('cart-total');
+        cartContainer.innerHTML = '';
+        let totalPrice = 0;
+
+        if (cart.length === 0) {
+            cartContainer.innerHTML = '<p style="text-align:center; color:#86868b; margin-top:50px;">購物車是空的</p>';
+        } else {
+            cart.forEach((item, index) => {
+                totalPrice += item.price;
+                cartContainer.innerHTML += `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="product">
+                        <div class="item-details">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">NT$ ${item.price.toLocaleString()}</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFromCart(${index})">移除</button>
+                    </div>
+                `;
+            });
+        }
+        totalEl.innerText = 'NT$ ' + totalPrice.toLocaleString();
+        
+        // 更新導覽列上的數量 (如果有的話)
+        updateCartCount();
+    }
+
+    // 2. 加入購物車功能
+    function addToCart(name, price, image) {
+        cart.push({ name, price, image });
+        saveCart();
+        renderCart();
+        toggleCart(true); // 加入後自動打開側邊欄
+    }
+
+    // 3. 移除商品
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        saveCart();
+        renderCart();
+    }
+
+    // 4. 儲存到 LocalStorage (瀏覽器記憶體)
+    function saveCart() {
+        localStorage.setItem('CollectING_cart', JSON.stringify(cart));
+    }
+
+    // 5. 開關側邊欄
+    function toggleCart(forceOpen = false) {
+        const sidebar = document.getElementById('cart-sidebar');
+        const overlay = document.getElementById('cart-overlay');
+        if (forceOpen) {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+        } else {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+    }
+
+    // 6. 結帳 (模擬)
+    function checkout() {
+        if (cart.length === 0) return alert('購物車是空的！');
+        alert('感謝您的購買！訂單已送出 (模擬)');
+        cart = []; // 清空
+        saveCart();
+        renderCart();
+        toggleCart();
+    }
+
+    // 7. 更新導覽列購物車數量
+    function updateCartCount() {
+        const countBadge = document.getElementById('cart-count');
+        if (countBadge) {
+            countBadge.innerText = cart.length;
+            countBadge.style.display = cart.length > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    // 初始化
+    renderCart();
+</script>
+
+<body>
+
+    <nav>
+        <div class="nav-content">
+            <a href="index.html" style="font-weight:700; color:white;">CollectING</a>
+            <div class="nav-links">
+                <a href="products.html?category=camera">相機</a>
+                <a href="products.html?category=watch">手錶</a>
+                <a href="products.html?category=game">遊戲機</a>
+                <a href="products.html?category=audio">影音</a>
+                <a href="products.html?category=card">卡牌</a>
+                <a href="products.html?category=jersey">球衣</a>
+                <a href="products.html?category=comic">漫畫</a>
+                <a href="products.html?category=all">所有收藏</a>
+                <a href="authentication.html">關於我們</a>
+            </div>
+            <div class="nav-icons" style="display: flex; align-items: center; gap: 20px;">
+    
+                <a href="login.html" title="會員登入">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #d6d6d6; display: block; transition: color 0.3s;">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+
+                <a href="javascript:void(0)" onclick="toggleCart()" style="position: relative; display: block;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #d6d6d6; display: block; transition: color 0.3s;">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                    <span id="cart-count" style="
+                        position: absolute; 
+                        top: -5px; 
+                        right: -8px; 
+                        background: #ff3b30; 
+                        color: white; 
+                        font-size: 10px; 
+                        width: 16px; 
+                        height: 16px; 
+                        border-radius: 50%; 
+                        display: none; 
+                        justify-content: center; 
+                        align-items: center;
+                        font-weight: bold;">0</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="article-container">
+        <h1>我們的承諾。</h1>
+        
+        <p>在 CollectING，我們不只是販售二手商品，我們是歷史的守護者。每一件進入我們倉庫的物品，都會經歷一段嚴格的重生旅程。</p>
+
+        <h2>鑑定流程</h2>
+        <p>我們的鑑定團隊由具有 20 年以上經驗的相機技師、鐘錶修復師組成。我們拒絕任何「拼裝機」或來源不明的贗品。</p>
+        <ul>
+            <li><strong>外觀檢測：</strong>使用顯微鏡檢查金屬疲勞與氧化程度。</li>
+            <li><strong>機械測試：</strong>使用儀器測量快門準度、手錶日差。</li>
+            <li><strong>清潔保養：</strong>拆解、超音波清洗、重新上油潤滑。</li>
+        </ul>
+
+        <h2>分級制度</h2>
+        <p>為了讓線上購物更透明，我們採用業界最嚴格的分級標準：</p>
+        <p>
+            <strong>Grade S (收藏級)：</strong> 如新品般完美，可能有原盒裝。<br>
+            <strong>Grade A (極上品)：</strong> 輕微使用痕跡，功能完美。<br>
+            <strong>Grade B (實用級)：</strong> 明顯歲月痕跡，但機械功能運作正常。
+        </p>
+
+        <h2>退換貨政策</h2>
+        <p>我們理解網購古董的擔憂。因此，我們提供收到商品後 <strong>7 天內的無條件退貨服務</strong>。若您覺得實品與照片描述不符，請直接聯繫我們安排退款。</p>
+
+        <div class="signature">
+            <p>CollectING 團隊 敬上</p>
+            <p>Taoyuan, Taiwan</p>
+        </div>
+    </div>
+</body>
+</html>

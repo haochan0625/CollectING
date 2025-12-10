@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>結帳 - CollectING</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .checkout-container {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 1100px;
+            margin: 100px auto;
+            padding: 20px;
+            gap: 40px;
+        }
+        /* 左側表單 */
+        .form-section { flex: 1.5; min-width: 300px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px; }
+        input, select {
+            width: 100%; padding: 12px;
+            background: #1d1d1f; border: 1px solid #333;
+            border-radius: 8px; color: white; font-size: 16px;
+        }
+        input:focus { border-color: var(--accent); outline: none; }
+        
+        /* 右側訂單摘要 */
+        .summary-section {
+            flex: 1; min-width: 300px;
+            background: #1d1d1f; padding: 30px;
+            border-radius: 20px; height: fit-content;
+        }
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; }
+        .total-row {
+            display: flex; justify-content: space-between;
+            margin-top: 20px; padding-top: 20px;
+            border-top: 1px solid #333;
+            font-size: 20px; font-weight: 700; color: white;
+        }
+        .submit-btn {
+            width: 100%; padding: 15px; margin-top: 30px;
+            background: var(--accent); color: white;
+            border: none; border-radius: 10px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">CollectING</a>
+            <div style="font-size:12px; color:#86868b;">安全結帳</div>
+        </div>
+    </nav>
+
+    <div class="checkout-container">
+        <div class="form-section">
+            <h2 style="margin-bottom:30px;">運送資訊</h2>
+            <div class="form-group">
+                <label>收件人姓名</label>
+                <input type="text" placeholder="真實姓名">
+            </div>
+            <div class="form-group">
+                <label>聯絡電話</label>
+                <input type="tel" placeholder="09xx-xxx-xxx">
+            </div>
+            <div class="form-group">
+                <label>電子信箱 (用於接收訂單通知)</label>
+                <input type="email" placeholder="name@example.com">
+            </div>
+            <div class="form-group">
+                <label>收件地址</label>
+                <input type="text" placeholder="縣市、區、街道地址">
+            </div>
+            <div class="form-group">
+                <label>付款方式</label>
+                <select>
+                    <option>信用卡 (Visa/Master)</option>
+                    <option>銀行轉帳</option>
+                    <option>貨到付款</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="summary-section">
+            <h3 style="margin-bottom:20px;">訂單摘要</h3>
+            <div id="order-items">
+                </div>
+            <div class="total-row">
+                <span>總計</span>
+                <span id="final-total">NT$ 0</span>
+            </div>
+            <button class="submit-btn" onclick="submitOrder()">確認付款</button>
+        </div>
+    </div>
+
+    <script>
+        // 讀取購物車資料並顯示
+        const cart = JSON.parse(localStorage.getItem('CollectING_cart')) || [];
+        const container = document.getElementById('order-items');
+        const totalEl = document.getElementById('final-total');
+        
+        let total = 0;
+
+        if(cart.length === 0) {
+            container.innerHTML = "<p>購物車是空的</p>";
+            document.querySelector('.submit-btn').disabled = true;
+            document.querySelector('.submit-btn').style.background = "#333";
+        } else {
+            cart.forEach(item => {
+                total += item.price;
+                container.innerHTML += `
+                    <div class="summary-item">
+                        <span style="color:#ccc;">${item.name}</span>
+                        <span>NT$ ${item.price.toLocaleString()}</span>
+                    </div>
+                `;
+            });
+        }
+        totalEl.innerText = "NT$ " + total.toLocaleString();
+
+        function submitOrder() {
+            // 模擬結帳
+            alert("感謝您的訂購！我們已發送確認信至您的信箱。");
+            localStorage.removeItem('CollectING_cart'); // 清空購物車
+            window.location.href = "index.html"; // 回首頁
+        }
+    </script>
+</body>
+</html>

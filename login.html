@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會員登入 - CollectING</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            /* 讓背景有點變化 */
+            background-image: url('https://images.unsplash.com/photo-1550537687-c91072c4792d?q=80&w=2000');
+            background-size: cover;
+            background-position: center;
+        }
+        /* 全螢幕遮罩讓文字清楚 */
+        .login-wrapper {
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.6);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .login-card {
+            width: 400px;
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 40px; border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .login-logo { font-size: 24px; font-weight: 700; margin-bottom: 30px; display: block; }
+        
+        input {
+            width: 100%; padding: 12px; margin-bottom: 15px;
+            background: rgba(255,255,255,0.1); border: none;
+            border-radius: 8px; color: white;
+        }
+        .action-btn {
+            width: 100%; padding: 12px;
+            background: var(--accent); color: white;
+            border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+        }
+        .toggle-text { margin-top: 20px; font-size: 13px; color: #86868b; cursor: pointer; }
+        .toggle-text:hover { color: white; }
+    </style>
+</head>
+<body>
+    
+    <nav>
+        <div class="nav-content">
+            <a href="index.html" class="nav-logo">CollectING</a>
+        </div>
+    </nav>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <a href="index.html" class="login-logo">CollectING ID</a>
+            
+            <div id="login-form">
+                <h2 style="margin-bottom:20px;">歡迎回來</h2>
+                <input type="email" placeholder="電子信箱">
+                <input type="password" placeholder="密碼">
+                <button class="action-btn" onclick="alert('登入成功')">登入</button>
+                <div class="toggle-text" onclick="toggleForm()">還沒有帳號？立即註冊</div>
+            </div>
+
+            <div id="register-form" style="display: none;">
+                <h2 style="margin-bottom:20px;">建立帳號</h2>
+                <input type="text" placeholder="姓名">
+                <input type="email" placeholder="電子信箱">
+                <input type="password" placeholder="設定密碼">
+                <button class="action-btn" style="background: #333;" onclick="alert('註冊成功')">註冊</button>
+                <div class="toggle-text" onclick="toggleForm()">已有帳號？登入</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleForm() {
+            const login = document.getElementById('login-form');
+            const register = document.getElementById('register-form');
+            if (login.style.display === 'none') {
+                login.style.display = 'block';
+                register.style.display = 'none';
+            } else {
+                login.style.display = 'none';
+                register.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
