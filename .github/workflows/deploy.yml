@@ -15,9 +15,11 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
+          # 注意：下面這三行，必須比上面的 with 多兩個空格！
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-1 # 請改成你 Bucket 的區域 (例如 us-east-1)
+          aws-region: ap-northeast-1
 
       - name: Deploy to S3 bucket
+        # 請記得把下面這個 bucket 名稱換成你自己的
         run: aws s3 sync . s3://collecting-web --delete --exclude ".git/*" --exclude ".github/*"
